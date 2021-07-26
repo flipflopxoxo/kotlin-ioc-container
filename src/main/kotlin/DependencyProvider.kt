@@ -1,6 +1,6 @@
 import kotlin.reflect.*
 
-class IOCContainer {
+class DependencyProvider {
     private val moduleMap = mutableMapOf<KClass<out Any>, Generator<out Any>>()
 
     fun <T : Any> addModule(clazz: KClass<T>, module: Module<T>) {
@@ -34,16 +34,16 @@ class IOCContainer {
     }
 
     private sealed class Generator<T : Any> {
-        abstract fun generateInstance(container: IOCContainer, consumedModules: List<KClass<out Any>>): T
+        abstract fun generateInstance(container: DependencyProvider, consumedModules: List<KClass<out Any>>): T
 
         class IndependentGenerator<T : Any>(private val generator: Module<T>) : Generator<T>() {
-            override fun generateInstance(container: IOCContainer, consumedModules: List<KClass<out Any>>): T {
+            override fun generateInstance(container: DependencyProvider, consumedModules: List<KClass<out Any>>): T {
                 return generator.createInstance()
             }
         }
 
         class InjectGenerator<T : Any>(private val constructor: KCallable<T>) : Generator<T>() {
-            override fun generateInstance(container: IOCContainer, consumedModules: List<KClass<out Any>>): T {
+            override fun generateInstance(container: DependencyProvider, consumedModules: List<KClass<out Any>>): T {
                 val parameterMap = mutableMapOf<KParameter, Any>()
                 for (parameterType in constructor.parameters) {
 

@@ -2,10 +2,10 @@ import classes.*
 import org.junit.Test
 import org.junit.jupiter.api.Assertions.*
 
-internal class IOCContainerTest {
+internal class DependencyProviderTest {
     @Test
     fun hasNoModule_requestDependency_throwsException() {
-        val container = IOCContainer()
+        val container = DependencyProvider()
 
         assertThrows(ModuleNotFoundException::class.java) {
             container.get(InterfaceA::class)
@@ -14,7 +14,7 @@ internal class IOCContainerTest {
 
     @Test
     fun hasMatchingModule_requestDependency_createsInstance() {
-        val container = IOCContainer()
+        val container = DependencyProvider()
         container.addModule(InterfaceA::class, object : Module<InterfaceA> {
             override fun createInstance() = InterfaceAImplA()
         })
@@ -24,7 +24,7 @@ internal class IOCContainerTest {
 
     @Test
     fun hasInjectModuleWithMissingDependency_requestInstance_throwsException() {
-        val container = IOCContainer()
+        val container = DependencyProvider()
 
         container.registerInstanceType(InterfaceA::class, InterfaceAImplB::class)
 
@@ -35,7 +35,7 @@ internal class IOCContainerTest {
 
     @Test
     fun hasInjectModuleWithAllDependency_requestInstance_createInstance() {
-        val container = IOCContainer()
+        val container = DependencyProvider()
 
         container.registerInstanceType(InterfaceA::class, InterfaceAImplB::class)
         container.addModule(Item::class, object : Module<Item> {
@@ -47,7 +47,7 @@ internal class IOCContainerTest {
 
     @Test
     fun hasInjectModuleWithCircularDependency_requestInstance_throwsException() {
-        val container = IOCContainer()
+        val container = DependencyProvider()
 
         container.registerInstanceType(InterfaceA::class, InterfaceAImplCircularA::class)
 
@@ -58,7 +58,7 @@ internal class IOCContainerTest {
 
     @Test
     fun hasInjectModuleWithNontrivialCircularDependency_requestInstance_throwsException() {
-        val container = IOCContainer()
+        val container = DependencyProvider()
 
         container.registerInstanceType(InterfaceA::class, InterfaceACircularB::class)
         container.registerInstanceType(InterfaceB::class, InterfaceBImplInterfaceADependent::class)
