@@ -3,7 +3,7 @@ import kotlin.reflect.*
 class DependencyProvider {
     private val moduleMap = mutableMapOf<KClass<out Any>, Generator<out Any>>()
 
-    fun <T : Any> addModule(clazz: KClass<T>, module: Module<T>) {
+    fun <T : Any> registerModule(clazz: KClass<T>, module: Module<T>) {
         moduleMap[clazz] = Generator.IndependentGenerator(module)
     }
 

@@ -15,7 +15,7 @@ internal class DependencyProviderTest {
     @Test
     fun hasMatchingModule_requestDependency_createsInstance() {
         val container = DependencyProvider()
-        container.addModule(InterfaceA::class, object : Module<InterfaceA> {
+        container.registerModule(InterfaceA::class, object : Module<InterfaceA> {
             override fun createInstance() = InterfaceAImplA()
         })
 
@@ -38,7 +38,7 @@ internal class DependencyProviderTest {
         val container = DependencyProvider()
 
         container.registerInstanceType(InterfaceA::class, InterfaceAImplB::class)
-        container.addModule(Item::class, object : Module<Item> {
+        container.registerModule(Item::class, object : Module<Item> {
             override fun createInstance() = Item()
         })
 
