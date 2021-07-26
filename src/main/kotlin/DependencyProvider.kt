@@ -3,10 +3,17 @@ import kotlin.reflect.*
 class DependencyProvider {
     private val moduleMap = mutableMapOf<KClass<out Any>, Generator<out Any>>()
 
+    /**
+     * Register a module that generates an instance of type T to provide as a dependency.
+     */
     fun <T : Any> registerModule(clazz: KClass<T>, module: Module<T>) {
         moduleMap[clazz] = Generator.IndependentGenerator(module)
     }
 
+    /**
+     * Register a class with exactly one constructor annotated with @Inject to generate a new instance, while injecting
+     * the required parameters, to provide as a dependency.
+     */
     fun <T : Any> registerInstanceType(dependencyClass: KClass<T>, instanceClazz: KClass<out T>) {
         val injectConstructor = instanceClazz.constructors.singleOrNull {
             it.annotations.filter { it is Inject }.isNotEmpty()
@@ -14,10 +21,16 @@ class DependencyProvider {
         moduleMap[dependencyClass] = Generator.InjectGenerator(injectConstructor)
     }
 
+    /**
+     * Register an instance that will be provided whenever a request for the dependency is made
+     */
     fun <T : Any> registerInstance(dependencyClass: KClass<out T>, instance: T) {
         moduleMap[dependencyClass] = Generator.InstanceProvider(instance)
     }
 
+    /**
+     * Retrieve an instance of the required T
+     */
     fun <T : Any> get(clazz: KClass<T>): T {
         return generateInstance(clazz, emptyList())
     }
