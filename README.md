@@ -20,5 +20,6 @@ registered providers in the DependencyProvider.
 The DependencyProvider class also handle circular dependencies by keeping a stack of dependencies that are child
 dependencies while resolving the main dependency.
 
-A TDD approach is done while writing the implementation. Therefore, the test cases demonstrates how the DependencyManager
-should be used.
+##Testing
+A TDD approach was used while writing the implementation. Therefore, the test cases demonstrate how the 
+DependencyProvider is designed to be used.
