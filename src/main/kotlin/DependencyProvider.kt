@@ -7,11 +7,15 @@ class DependencyProvider {
         moduleMap[clazz] = Generator.IndependentGenerator(module)
     }
 
-    fun <T : Any> registerInstanceType(dependencyClass: KClass<out Any>, instanceClazz: KClass<T>) {
+    fun <T : Any> registerInstanceType(dependencyClass: KClass<T>, instanceClazz: KClass<out T>) {
         val injectConstructor = instanceClazz.constructors.singleOrNull {
             it.annotations.filter { it is Inject }.isNotEmpty()
         } ?: throw InjectConstructorNotFoundException()
         moduleMap[dependencyClass] = Generator.InjectGenerator(injectConstructor)
+    }
+
+    fun <T : Any> registerInstance(dependencyClass: KClass<out T>, instance: T) {
+        moduleMap[dependencyClass] = Generator.InstanceProvider(instance)
     }
 
     fun <T : Any> get(clazz: KClass<T>): T {
@@ -60,6 +64,13 @@ class DependencyProvider {
                 }
                 return constructor.call(*parameter.toTypedArray())
             }
+        }
+
+        class InstanceProvider<T : Any>(private val instance: T) : Generator<T>() {
+            override fun generateInstance(container: DependencyProvider, consumedModules: List<KClass<out Any>>): T {
+                return instance
+            }
+
         }
     }
 }

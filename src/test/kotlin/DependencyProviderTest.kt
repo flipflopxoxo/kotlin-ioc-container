@@ -67,4 +67,15 @@ internal class DependencyProviderTest {
             container.get(InterfaceA::class)
         }
     }
+
+    @Test
+    fun hasInstanceRegistered_requestInstance_returnsSameInstance() {
+        val container = DependencyProvider()
+        val registeredInstance = InterfaceAImplA()
+        container.registerInstance(InterfaceA::class, registeredInstance)
+
+        val receivedDependency = container.get(InterfaceA::class)
+
+        assertSame(registeredInstance, receivedDependency)
+    }
 }
