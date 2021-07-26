@@ -1,5 +1,5 @@
-#IoC Container
-##Approach
+# IoC Container
+## Approach
 The idea is to provide three different ways of generating dependencies from the DependencyContainer.
 - A single instance that will be reused whenever the dependency is requested
 - A generator created from the constructor of the registered class with the @Inject annotation
@@ -20,6 +20,6 @@ registered providers in the DependencyProvider.
 The DependencyProvider class also handle circular dependencies by keeping a stack of dependencies that are child
 dependencies while resolving the main dependency.
 
-##Testing
+## Testing
 A TDD approach was used while writing the implementation. Therefore, the test cases demonstrate how the 
 DependencyProvider is designed to be used.
