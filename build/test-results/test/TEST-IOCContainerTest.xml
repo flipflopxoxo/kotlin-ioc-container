@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="IOCContainerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2021-07-26T12:11:33" hostname="DESKTOP-1C533RK" time="0.005">
+  <properties/>
+  <testcase name="hasNoModule_requestDependency_throwsException" classname="IOCContainerTest" time="0.004"/>
+  <testcase name="hasMatchingModule_requestDependency_throwsException" classname="IOCContainerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
