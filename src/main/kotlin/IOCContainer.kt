@@ -1,25 +1,24 @@
-import java.lang.reflect.Constructor
-import java.lang.reflect.Type
+import kotlin.reflect.*
 
 class IOCContainer {
-    private val moduleMap = mutableMapOf<Type, Module<out Any>>()
+    private val moduleMap = mutableMapOf<KClass<out Any>, Generator<out Any>>()
 
-    fun <T : Any> addModule(clazz: Class<T>, module: () -> T) {
-        moduleMap[clazz] = Module.IndependentModule(module)
+    fun <T : Any> addModule(clazz: KClass<T>, module: Module<T>) {
+        moduleMap[clazz] = Generator.IndependentGenerator(module)
     }
 
-    fun <T> registerInjectableModule(clazz: Class<T>, instanceClazz: Class<out T>) {
+    fun <T : Any> registerInstanceType(dependencyClass: KClass<out Any>, instanceClazz: KClass<T>) {
         val injectConstructor = instanceClazz.constructors.singleOrNull {
-            it.isAnnotationPresent(Inject::class.java)
+            it.annotations.filter { it is Inject }.isNotEmpty()
         } ?: throw InjectConstructorNotFoundException()
-        moduleMap[clazz] = Module.InjectModule(injectConstructor)
+        moduleMap[dependencyClass] = Generator.InjectGenerator(injectConstructor)
     }
 
-    fun <T> get(clazz: Class<T>): T {
+    fun <T : Any> get(clazz: KClass<T>): T {
         return generateInstance(clazz, emptyList())
     }
 
-    private fun <T> generateInstance(clazz: Class<T>, pendingList: List<Type>): T {
+    private fun <T : Any> generateInstance(clazz: KClass<out T>, pendingList: List<KClass<out T>>): T {
         if (pendingList.contains(clazz)) {
             throw CircularDependencyException()
         }
@@ -34,31 +33,38 @@ class IOCContainer {
         throw ModuleNotFoundException(clazz)
     }
 
-    private sealed class Module<T> {
-        abstract fun generateInstance(container: IOCContainer, consumedModules: List<Type>): T
+    private sealed class Generator<T : Any> {
+        abstract fun generateInstance(container: IOCContainer, consumedModules: List<KClass<out Any>>): T
 
-        class IndependentModule<T>(private val generator: () -> T) : Module<T>() {
-            override fun generateInstance(container: IOCContainer, consumedModules: List<Type>): T {
-                return generator()
+        class IndependentGenerator<T : Any>(private val generator: Module<T>) : Generator<T>() {
+            override fun generateInstance(container: IOCContainer, consumedModules: List<KClass<out Any>>): T {
+                return generator.createInstance()
             }
         }
 
-        class InjectModule<T>(private val constructor: Constructor<T>) : Module<T>() {
-            override fun generateInstance(container: IOCContainer, consumedModules: List<Type>): T {
-                val parameterMap = mutableMapOf<Type, Any>()
-                for (parameterType in constructor.parameterTypes) {
-                    parameterMap[parameterType] = container.generateInstance(parameterType, consumedModules)
+        class InjectGenerator<T : Any>(private val constructor: KCallable<T>) : Generator<T>() {
+            override fun generateInstance(container: IOCContainer, consumedModules: List<KClass<out Any>>): T {
+                val parameterMap = mutableMapOf<KParameter, Any>()
+                for (parameterType in constructor.parameters) {
+
+                    val classifier = parameterType.type.classifier
+                    if (classifier is KClass<out Any>) {
+                        parameterMap[parameterType] =
+                            container.generateInstance(classifier, consumedModules)
+                    } else {
+                        throw ModuleNotFoundException(classifier)
+                    }
                 }
-                val parameter = constructor.parameterTypes.map {
+                val parameter = constructor.parameters.map {
                     parameterMap[it]
                 }
-                return constructor.newInstance(*parameter.toTypedArray())
+                return constructor.call(*parameter.toTypedArray())
             }
         }
     }
 }
 
-class ModuleNotFoundException(clazz: Type) : Exception("No module is registered for the given type $clazz")
+class ModuleNotFoundException(clazz: KClassifier?) : Exception("No module is registered for the given type $clazz")
 class InjectConstructorNotFoundException() :
     Exception("No unique constructor with the @Inject annotation has been found")
 

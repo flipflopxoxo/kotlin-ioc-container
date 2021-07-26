@@ -8,30 +8,28 @@ internal class IOCContainerTest {
         val container = IOCContainer()
 
         assertThrows(ModuleNotFoundException::class.java) {
-            container.get(InterfaceA::class.java)
+            container.get(InterfaceA::class)
         }
     }
 
     @Test
     fun hasMatchingModule_requestDependency_createsInstance() {
         val container = IOCContainer()
-        container.addModule(InterfaceA::class.java) {
-            InterfaceAImplA()
-        }
+        container.addModule(InterfaceA::class, object : Module<InterfaceA> {
+            override fun createInstance() = InterfaceAImplA()
+        })
 
-        val instance = container.get(InterfaceA::class.java)
-
-        assert(instance is InterfaceA)
+        container.get(InterfaceA::class)
     }
 
     @Test
     fun hasInjectModuleWithMissingDependency_requestInstance_throwsException() {
         val container = IOCContainer()
 
-        container.registerInjectableModule(InterfaceA::class.java, InterfaceAImplB::class.java)
+        container.registerInstanceType(InterfaceA::class, InterfaceAImplB::class)
 
         assertThrows(ModuleNotFoundException::class.java) {
-            container.get(InterfaceA::class.java)
+            container.get(InterfaceA::class)
         }
     }
 
@@ -39,23 +37,22 @@ internal class IOCContainerTest {
     fun hasInjectModuleWithAllDependency_requestInstance_createInstance() {
         val container = IOCContainer()
 
-        container.registerInjectableModule(InterfaceA::class.java, InterfaceAImplB::class.java)
-        container.addModule(Item::class.java) {
-            Item()
-        }
-        val instance = container.get(InterfaceA::class.java)
+        container.registerInstanceType(InterfaceA::class, InterfaceAImplB::class)
+        container.addModule(Item::class, object : Module<Item> {
+            override fun createInstance() = Item()
+        })
 
-        assert(instance is InterfaceA)
+        container.get(InterfaceA::class)
     }
 
     @Test
     fun hasInjectModuleWithCircularDependency_requestInstance_throwsException() {
         val container = IOCContainer()
 
-        container.registerInjectableModule(InterfaceA::class.java, InterfaceAImplCircularA::class.java)
+        container.registerInstanceType(InterfaceA::class, InterfaceAImplCircularA::class)
 
         assertThrows(CircularDependencyException::class.java) {
-            container.get(InterfaceA::class.java)
+            container.get(InterfaceA::class)
         }
     }
 
@@ -63,11 +60,11 @@ internal class IOCContainerTest {
     fun hasInjectModuleWithNontrivialCircularDependency_requestInstance_throwsException() {
         val container = IOCContainer()
 
-        container.registerInjectableModule(InterfaceA::class.java, InterfaceACircularB::class.java)
-        container.registerInjectableModule(InterfaceB::class.java, InterfaceBImplInterfaceADependent::class.java)
+        container.registerInstanceType(InterfaceA::class, InterfaceACircularB::class)
+        container.registerInstanceType(InterfaceB::class, InterfaceBImplInterfaceADependent::class)
 
         assertThrows(CircularDependencyException::class.java) {
-            container.get(InterfaceA::class.java)
+            container.get(InterfaceA::class)
         }
     }
 }
